@@ -1,10 +1,12 @@
+// Step 1: Setup Server Simulation
+const serverUrl = "https://jsonplaceholder.typicode.com/posts";
+
+// Existing quotes array
 let quotes = [
   { id: 1, text: "The only limit to our realization of tomorrow is our doubts of today.", category: "Inspiration" },
   { id: 2, text: "Do not wait to strike till the iron is hot; but make it hot by striking.", category: "Motivation" },
   { id: 3, text: "Great minds discuss ideas; average minds discuss events; small minds discuss people.", category: "Wisdom" }
 ];
-
-const serverUrl = "https://jsonplaceholder.typicode.com/posts";
 
 // Function to load quotes from local storage
 function loadQuotes() {
@@ -132,7 +134,7 @@ function exportToJsonFile() {
 }
 
 // Function to fetch quotes from the server
-async function fetchServerQuotes() {
+async function fetchQuotesFromServer() {
   try {
     const response = await fetch(serverUrl);
     const serverQuotes = await response.json();
@@ -145,7 +147,7 @@ async function fetchServerQuotes() {
 
 // Function to sync data with the server
 async function syncData() {
-  const serverQuotes = await fetchServerQuotes();
+  const serverQuotes = await fetchQuotesFromServer();
 
   // Merge server quotes with local quotes
   const mergedQuotes = mergeQuotes(quotes, serverQuotes);
@@ -179,4 +181,26 @@ function notifyUser(message) {
   const notification = document.createElement('div');
   notification.className = 'notification';
   notification.textContent = message;
+  document.body.appendChild(notification);
+
+  setTimeout(() => {
+    notification.remove();
+  }, 3000);
 }
+
+// Initial setup
+window.onload = function() {
+  loadQuotes(); // Load quotes from local storage
+  populateCategories(); // Populate categories in the filter dropdown
+  showRandomQuote(); // Show a random quote
+
+  // Event listener for the "Sync Data" button
+  document.getElementById('syncData').addEventListener('click', syncData);
+
+  // Event listener for the category filter dropdown
+  document.getElementById('categoryFilter').addEventListener('change', filterQuotes);
+
+  // Event listeners for importing and exporting JSON files
+  document.getElementById('importJson').addEventListener('change', importFromJsonFile);
+  document.getElementById('exportJson').addEventListener('click', exportToJsonFile);
+};
