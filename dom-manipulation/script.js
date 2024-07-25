@@ -1,8 +1,10 @@
 let quotes = [
-  { text: "The only limit to our realization of tomorrow is our doubts of today.", category: "Inspiration" },
-  { text: "Do not wait to strike till the iron is hot; but make it hot by striking.", category: "Motivation" },
-  { text: "Great minds discuss ideas; average minds discuss events; small minds discuss people.", category: "Wisdom" }
+  { id: 1, text: "The only limit to our realization of tomorrow is our doubts of today.", category: "Inspiration" },
+  { id: 2, text: "Do not wait to strike till the iron is hot; but make it hot by striking.", category: "Motivation" },
+  { id: 3, text: "Great minds discuss ideas; average minds discuss events; small minds discuss people.", category: "Wisdom" }
 ];
+
+const serverUrl = "https://jsonplaceholder.typicode.com/posts";
 
 // Function to load quotes from local storage
 function loadQuotes() {
@@ -47,7 +49,8 @@ function addQuote() {
   const newQuoteCategory = document.getElementById('newQuoteCategory').value;
 
   if (newQuoteText && newQuoteCategory) {
-    quotes.push({ text: newQuoteText, category: newQuoteCategory });
+    const newQuote = { id: Date.now(), text: newQuoteText, category: newQuoteCategory };
+    quotes.push(newQuote);
     alert("New quote added!");
     document.getElementById('newQuoteText').value = '';
     document.getElementById('newQuoteCategory').value = '';
@@ -128,23 +131,52 @@ function exportToJsonFile() {
   URL.revokeObjectURL(url);
 }
 
-// Event listener for the "Show New Quote" button
-document.getElementById('newQuote').addEventListener('click', showRandomQuote);
-
-// Initialize the add quote form and display an initial random quote when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-  loadQuotes(); // Load quotes from local storage
-  createAddQuoteForm();
-  populateCategories(); // Populate the category filter
-  showRandomQuote();
-});
-
-// Check for the last viewed quote in session storage and display it
-window.addEventListener('load', () => {
-  const lastViewedQuote = sessionStorage.getItem('lastViewedQuote');
-  if (lastViewedQuote) {
-    const quoteDisplay = document.getElementById('quoteDisplay');
-    const quote = JSON.parse(lastViewedQuote);
-    quoteDisplay.innerHTML = `<p>${quote.text}</p><p><em>${quote.category}</em></p>`;
+// Function to fetch quotes from the server
+async function fetchServerQuotes() {
+  try {
+    const response = await fetch(serverUrl);
+    const serverQuotes = await response.json();
+    return serverQuotes;
+  } catch (error) {
+    console.error("Error fetching quotes from server:", error);
+    return [];
   }
-});
+}
+
+// Function to sync data with the server
+async function syncData() {
+  const serverQuotes = await fetchServerQuotes();
+
+  // Merge server quotes with local quotes
+  const mergedQuotes = mergeQuotes(quotes, serverQuotes);
+
+  // Save merged quotes to local storage
+  quotes = mergedQuotes;
+  saveQuotes();
+
+  // Notify the user of updates
+  notifyUser("Data synced with server. Conflicts resolved where necessary.");
+}
+
+// Function to merge local and server quotes, resolving conflicts
+function mergeQuotes(localQuotes, serverQuotes) {
+  const mergedQuotes = [...localQuotes];
+
+  serverQuotes.forEach(serverQuote => {
+    const existingQuoteIndex = mergedQuotes.findIndex(localQuote => localQuote.id === serverQuote.id);
+    if (existingQuoteIndex > -1) {
+      mergedQuotes[existingQuoteIndex] = serverQuote;
+    } else {
+      mergedQuotes.push(serverQuote);
+    }
+  });
+
+  return mergedQuotes;
+}
+
+// Function to notify users of updates
+function notifyUser(message) {
+  const notification = document.createElement('div');
+  notification.className = 'notification';
+  notification.textContent = message;
+}
