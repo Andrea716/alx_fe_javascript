@@ -59,6 +59,9 @@ function addQuote() {
     saveQuotes(); // Save the updated quotes array to local storage
     populateCategories(); // Update the category filter
     filterQuotes(); // Update the DOM to display the newly added quote
+
+    // Post the new quote to the server
+    postQuoteToServer(newQuote);
   } else {
     alert("Please enter both quote text and category.");
   }
@@ -174,6 +177,23 @@ function mergeQuotes(localQuotes, serverQuotes) {
   });
 
   return mergedQuotes;
+}
+
+// Function to post a quote to the server
+async function postQuoteToServer(quote) {
+  try {
+    const response = await fetch(serverUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(quote)
+    });
+    const result = await response.json();
+    console.log("Quote posted to server:", result);
+  } catch (error) {
+    console.error("Error posting quote to server:", error);
+  }
 }
 
 // Function to notify users of updates
