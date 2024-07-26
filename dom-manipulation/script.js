@@ -1,12 +1,15 @@
 // Setup Server Simulation
 const serverUrl = "https://jsonplaceholder.typicode.com/posts";
 
+// Initialize the quotes array
+let quotes = [];
+
 // Function to fetch quotes from the server
 async function fetchQuotesFromServer() {
   try {
     const response = await fetch(serverUrl);
     const serverQuotes = await response.json();
-    return serverQuotes;
+    return serverQuotes.map(q => ({ text: q.title, author: q.body, id: q.id })); // Adjust according to your server's response structure
   } catch (error) {
     console.error("Error fetching quotes from server:", error);
     return [];
@@ -105,7 +108,7 @@ async function syncQuotes() {
   saveQuotes();
 
   // Notify the user of updates
-  notifyUser("Data synced with server. Conflicts resolved where necessary.");
+  alert("Quotes synced with server!");
 }
 
 // Function to merge local and server quotes, resolving conflicts
@@ -122,18 +125,6 @@ function mergeQuotes(localQuotes, serverQuotes) {
   });
 
   return mergedQuotes;
-}
-
-// Function to notify users of updates
-function notifyUser(message) {
-  const notification = document.createElement('div');
-  notification.className = 'notification';
-  notification.textContent = message;
-  document.body.appendChild(notification);
-
-  setTimeout(() => {
-    notification.remove();
-  }, 3000);
 }
 
 // Initial setup
@@ -164,4 +155,4 @@ function exportToJsonFile() {
 }
 
 // Periodic data fetching to simulate receiving updates from a server
-setInterval(syncData, 60000); // Sync data every 60 seconds
+setInterval(syncQuotes, 60000); // Sync data every 60 seconds
